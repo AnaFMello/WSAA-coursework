@@ -1,30 +1,35 @@
-pip install GitPython
 import os
-import subprocess
+from github import Github
 
-def replace_and_commit(file_path, old_text, new_text):
-    # Read the content of the file
+repo_name = 'Tasks/assignment04-github.py'
+
+def replace_and_commit(file_path):
     with open(file_path, 'r') as file:
         content = file.read()
 
-    # Replace all instances of old_text with new_text
-    modified_content = content.replace(old_text, new_text)
+    new_content = content.replace("Andrew", "Ana")
 
-    # Write the modified content back to the file
     with open(file_path, 'w') as file:
-        file.write(modified_content)
+        file.write(new_content)
 
-    # Commit the changes using Git
-    commit_message = f"Replace {old_text} with {new_text}"
-    subprocess.run(['git', 'add', file_path])
-    subprocess.run(['git', 'commit', '-m', commit_message])
-    subprocess.run(['git', 'push'])
+def commit_to_github(file_path, github_token, repo_name, commit_message):
+    g = Github(github_token)
+    repo = g.get_repo(repo_name)
+
+    with open(file_path, 'r') as file:
+        content = file.read()
+
+    repo.create_file(file_path, commit_message, content)
 
 if __name__ == "__main__":
-    # Specify the file path, old text, and your name
-    file_path = 'Tasks/assignment04-github.py'
-    old_text = 'Andrew'
-    your_name = 'Ana'
+    file_path = 'assignment04.txt'
+    repo_name = 'Tasks/assignment04-github.py'
+    commit_message = 'Replace "Andrew" with "Ana""'
 
-    # Call the function to replace and commit changes
-    replace_and_commit(file_path, old_text, your_name)
+    github_token = os.environ.get('GITHUB_ACCESS_TOKEN')
+
+    if not github_token:
+        print("GitHub access token not found. Please set the 'GITHUB_ACCESS_TOKEN' environment variable.")
+    else:
+        replace_and_commit(file_path)
+        commit_to_github(file_path, github_token, repo_name, commit_message)
